@@ -2,6 +2,13 @@
 
 A little full-duplex soundcard "modem" emulator that relies on [`minimodem`](https://github.com/kamalmostafa/minimodem).
 
+* [Requirements](#requirements)
+* [Installation](#installation)
+* [Usage](#usage)
+* [How it Works](#how-it-works)
+* [Tips](#tips)
+* [Troubleshooting](#troubleshooting)
+
 ---
 
 ### Requirements
@@ -74,6 +81,8 @@ An example diagram has been provided below (please note the pinout of your devic
 ---
 
 ### Troubleshooting
+
+Things might go wrong, here's some tips on common issues.
 
 > I'm not recieving anything from my remote system!
 
