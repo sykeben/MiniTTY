@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Print informational header.
+echo "MiniTTY Version 0.1.0"
+echo "Options: tdd"
+echo ""
+
+# Start TX'er.
+tx_pipe=/tmp/minitty_tx
+[ -e $tx_pipe ] && rm -- $tx_pipe
+mkfifo $tx_pipe
+echo "Opened TX pipe, $tx_pipe"
+tail -f $tx_pipe | minimodem --tx tdd &
+tx_mod_proc=$!
+echo "Opened TX modem, PID $tx_mod_proc"
+
+# Start RX'er.
+rx_pipe=/tmp/minitty_rx
+[ -e $rx_pipe ] && rm -- $rx_pipe
+mkfifo $rx_pipe
+echo "Opened RX pipe, $rx_pipe"
+bash -c "minimodem --rx --quiet tdd >> $rx_pipe" &
+rx_mod_proc=$!
+echo "Opened RX modem, PID $rx_mod_proc"
+cat $rx_pipe &
+rx_std_proc=$!
+echo "Opened RX printer, PID $rx_std_proc"
+
+# Wait for user to CTRL+C.
+echo "Running - Press CTRL+C to quit."
+echo ""
+(
+    trap exit SIGINT
+    while :
+    do
+        read -r tx_line
+        echo $tx_line >> $tx_pipe
+    done
+)
+echo ""
+
+# Close RX'er.
+kill $rx_std_proc
+echo "Closed RX printer, PID $rx_std_proc"
+kill $rx_mod_proc
+echo "Closed RX modem, PID $rx_mod_proc"
+[ -e $rx_pipe ] && rm -- $rx_pipe
+echo "Closed RX pipe, $rx_pipe"
+
+# Close TX'er.
+kill $tx_mod_proc
+echo "Closed TX modem, PID $tx_mod_proc"
+[ -e $tx_pipe ] && rm -- $tx_pipe
+echo "Closed TX pipe, $tx_pipe"
