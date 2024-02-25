@@ -1,5 +1,31 @@
 #!/bin/bash
 
+# Set colors.
+BLACK="\033[30m"
+RED="\033[31m"
+GREEN="\033[32m"
+YELLOW="\033[33m"
+BLUE="\033[34m"
+PINK="\033[35m"
+CYAN="\033[36m"
+WHITE="\033[37m"
+NORMAL="\033[0;39m"
+
+# Define system output helper.
+sys () {
+    if [ -z "$1" ]
+    then
+        echo -e "$BLUE[SYS]$NORMAL"
+    else
+        echo -e "$BLUE[SYS] $1$NORMAL"
+    fi
+}
+
+# Define spacer helper.
+spc () {
+    echo -e "$BLUE=====$NORMAL"
+}
+
 # Prepare options.
 start_time="$(date +%s%3N)"
 modem_mode="Supplied"
@@ -11,34 +37,35 @@ then
 fi
 
 # Print informational header.
-echo "MiniTTY Version 0.2.0"
-echo "$modem_mode Options: $modem_opts"
-echo "Start Time: $start_time"
-echo ""
+sys "MiniTTY Version 0.3.0"
+sys "$modem_mode Options: $modem_opts"
+sys "Start Time: $start_time"
+spc
 
 # Start TX'er.
 tx_pipe="/tmp/minitty_tx_$start_time"
 [ -e $tx_pipe ] && rm -- $tx_pipe
 mkfifo $tx_pipe
-echo "Opened TX pipe, $tx_pipe"
+sys "Opened TX pipe, $tx_pipe"
 tail -f $tx_pipe | minimodem --tx $modem_opts &
 tx_mod_proc=$!
-echo "Opened TX modem, PID $tx_mod_proc"
+sys "Opened TX modem, PID $tx_mod_proc"
 
 # Start RX'er.
 rx_pipe="/tmp/minitty_rx_$start_time"
 [ -e $rx_pipe ] && rm -- $rx_pipe
 mkfifo $rx_pipe
-echo "Opened RX pipe, $rx_pipe"
+sys "Opened RX pipe, $rx_pipe"
 bash -c "minimodem --rx --quiet $modem_opts >> $rx_pipe" &
 rx_mod_proc=$!
-echo "Opened RX modem, PID $rx_mod_proc"
+sys "Opened RX modem, PID $rx_mod_proc"
 cat $rx_pipe &
 rx_std_proc=$!
-echo "Opened RX printer, PID $rx_std_proc"
+sys "Opened RX printer, PID $rx_std_proc"
 
 # Wait for user to CTRL+C.
-echo "Running - Press CTRL+C to quit."
+sys "Running - Press CTRL+C to quit."
+spc
 echo ""
 (
     trap exit SIGINT
@@ -49,17 +76,23 @@ echo ""
     done
 )
 echo ""
+spc
+sys "Stopped - CTRL+C was issued."
 
 # Close RX'er.
 kill $rx_std_proc
-echo "Closed RX printer, PID $rx_std_proc"
+sys "Closed RX printer, PID $rx_std_proc"
 kill $rx_mod_proc
-echo "Closed RX modem, PID $rx_mod_proc"
+sys "Closed RX modem, PID $rx_mod_proc"
 [ -e $rx_pipe ] && rm -- $rx_pipe
-echo "Closed RX pipe, $rx_pipe"
+sys "Closed RX pipe, $rx_pipe"
 
 # Close TX'er.
 kill $tx_mod_proc
-echo "Closed TX modem, PID $tx_mod_proc"
+sys "Closed TX modem, PID $tx_mod_proc"
 [ -e $tx_pipe ] && rm -- $tx_pipe
-echo "Closed TX pipe, $tx_pipe"
+sys "Closed TX pipe, $tx_pipe"
+
+# Clean up.
+spc
+sys "Goodbye!"
