@@ -24,6 +24,11 @@ A little full-duplex soundcard "modem" emulator that relies on [`minimodem`](htt
 
 ### Usage
 
-`./minitty`
+`./minitty [options]`
 
 By default, MiniTTY behaves like an American TTY/TDD.
+
+The syntax for `[options]` is identical to that of [`minimodem`](https://github.com/kamalmostafa/minimodem)'s, with a few exceptions:
+
+1. Do not use `--tx` or `--rx` as MiniTTY uses them on its own to set up the TX and RX processes.
+2. Do not use `--quiet` as it is used by default on the RX process.
