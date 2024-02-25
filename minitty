@@ -1,8 +1,17 @@
 #!/bin/bash
 
+# Prepare options.
+modem_mode="Supplied"
+modem_opts="$@"
+if [ -z "$modem_opts" ];
+then
+    modem_mode="Default"
+    modem_opts="tdd"
+fi
+
 # Print informational header.
-echo "MiniTTY Version 0.1.0"
-echo "Options: tdd"
+echo "MiniTTY Version 0.2.0"
+echo "$modem_mode Options: $modem_opts"
 echo ""
 
 # Start TX'er.
@@ -10,7 +19,7 @@ tx_pipe=/tmp/minitty_tx
 [ -e $tx_pipe ] && rm -- $tx_pipe
 mkfifo $tx_pipe
 echo "Opened TX pipe, $tx_pipe"
-tail -f $tx_pipe | minimodem --tx tdd &
+tail -f $tx_pipe | minimodem --tx $modem_opts &
 tx_mod_proc=$!
 echo "Opened TX modem, PID $tx_mod_proc"
 
@@ -19,7 +28,7 @@ rx_pipe=/tmp/minitty_rx
 [ -e $rx_pipe ] && rm -- $rx_pipe
 mkfifo $rx_pipe
 echo "Opened RX pipe, $rx_pipe"
-bash -c "minimodem --rx --quiet tdd >> $rx_pipe" &
+bash -c "minimodem --rx --quiet $modem_opts >> $rx_pipe" &
 rx_mod_proc=$!
 echo "Opened RX modem, PID $rx_mod_proc"
 cat $rx_pipe &
